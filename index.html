@@ -67,7 +67,12 @@
   .card .d { color: var(--muted); font-size: 12px; margin-top: 2px; }
   .card.dim { opacity: .28; border-style: dashed; }
   .card.mvp-on { border-color: var(--red); background: var(--red-soft); }
+  .card.must-on { border: 2px dashed var(--red); background: #fff6f6; }
   .card.scen-on { border-color: var(--blue); background: var(--blue-soft); }
+  .card.ongoing, .card.ongoing.dim { opacity: 1; border: 1.5px dotted #b8bcc4; background: #f4f5f6; }
+  .card.ongoing .t { color: var(--muted); }
+  .bar .card > div { flex: 1; }
+  .card.ongoing .t::after { content: "Always relevant"; margin-left: auto; white-space: nowrap; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #9aa0a8; }
 
   .foundation { margin-top: 14px; display: grid; grid-template-columns: 160px 1fr; gap: 10px; }
   .foundation .lbl { display: flex; align-items: center; justify-content: flex-end; padding: 0 2px 0 40px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; text-align: right; }
@@ -93,10 +98,11 @@
   .legend { display: flex; gap: 18px; margin: 18px 0 0 170px; color: var(--muted); font-size: 12px; }
   .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1.5px solid; }
   .legend .l-mvp i { border-color: var(--red); background: var(--red-soft); }
+  .legend .l-must i { border: 2px dashed var(--red); background: #fff6f6; }
   .legend .l-scen i { border-color: var(--blue); background: var(--blue-soft); }
-  .legend .l-scen { display: none; }
-  body.is-scen .legend .l-scen { display: inline; }
-  body.view-vision .legend { visibility: hidden; }
+  .legend .l-ongoing i { border: 1.5px dotted #b8bcc4; background: #f4f5f6; }
+  .legend .l-mvp, .legend .l-must, .legend .l-scen { display: none; }
+  body.has-mvp .legend .l-mvp, body.has-must .legend .l-must, body.is-scen .legend .l-scen { display: inline; }
 </style>
 </head>
 <body>
@@ -124,11 +130,13 @@
 
 <div class="legend">
   <span class="l-mvp"><i></i>MVP scope</span>
+  <span class="l-must"><i></i>Post-MVP must-have</span>
   <span class="l-scen"><i></i>Added in this scenario</span>
+  <span class="l-ongoing"><i></i>Always relevant, builds over time</span>
 </div>
 
 <script>
-// Edit here. mvp: true/false
+// Edit here. mvp: in MVP ; must: post-MVP must-have ; ongoing: always relevant, shown dotted grey on every tab
 // row: "base" (core RAQ-based) | "new" (deeper functionality / new channels) | "x" (cross-journey bar)
 const STAGES = ["Scope the project", "Plan", "Find & reach pros", "Compare & decide", "Book & coordinate", "Complete & next"];
 
@@ -143,39 +151,27 @@ const ITEMS = [
   // Find & reach pros
   { n: "6a", stage: 2, row: "base", title: "RAQ outreach", desc: "Submit the project to matched pros", mvp: true },
   { n: "6b", stage: 2, row: "base", title: "Pro follow-up", desc: "Pushes for price and availability when a pro says \"call me.\" Answers pro questions the consumer already covered", mvp: true },
-  { n: "6c", stage: 2, row: "base", title: "Continuous outreach", desc: "Add more pros until enough quotes come back" },
+  { n: "6c", stage: 2, row: "base", title: "Continuous outreach", desc: "Add more pros until enough quotes come back", must: true },
   { n: "6d", stage: 2, row: "new",  title: "Non-RAQ channels", desc: "Phone and web outreach to pros off RAQ" },
   // Compare & decide
   { n: "7a", stage: 3, row: "base", title: "Responses-ready push", desc: "Push notification brings the consumer back to review responses", mvp: true },
   { n: 9,  stage: 3, row: "base", title: "Pro comparison", desc: "Structured quote records, availability summary", mvp: true },
   { n: 8,  stage: 3, row: "new",  title: "Outside quotes", desc: "User forwards quotes to an agent email address" },
   // Book & coordinate
-  { n: 10, stage: 4, row: "base", title: "Appointment confirmation", desc: "Agent uses RAQ messaging to agree on a time with the pro and confirms it with the consumer" },
+  { n: 10, stage: 4, row: "base", title: "Appointment confirmation", desc: "Agent uses RAQ messaging to agree on a time with the pro and confirms it with the consumer", must: true },
   { n: "10b", stage: 4, row: "base", title: "Day-of coordination", desc: "Running late, gate code. Saved to home profile" },
   { n: 11, stage: 4, row: "new",  title: "Calendar connection", desc: "Book and add the appointment to the calendar" },
   // Complete & next
   { n: 12, stage: 5, row: "base", title: "Appointment & job check-in", desc: "Asks the consumer how the appointment went, then whether the job was completed right" },
   { n: "12b", stage: 5, row: "base", title: "Close the loop", desc: "Tell pros who were not hired" },
-  { n: 13, stage: 5, row: "new",  title: "To-do list", desc: "Next and recurring projects" },
+  { n: 13, stage: 5, row: "new",  title: "To-do list", desc: "Next and recurring projects", ongoing: true },
   // Cross-journey
-  { n: "7b", row: "x", title: "Progress updates", desc: "Push or SMS at every stage when there is news, prompts follow-ups" },
-  { n: 14, row: "x", title: "Agent learning", desc: "Updates user memory and a knowledge base about pros" },
+  { n: "7b", row: "x", title: "Progress updates", desc: "Push or SMS at every stage when there is news, prompts follow-ups", ongoing: true },
+  { n: 14, row: "x", title: "Agent learning", desc: "Updates user memory and a knowledge base about pros", ongoing: true },
 ];
 
-// Expansion scenarios: each adds components on top of the MVP. `adds` uses item numbers.
+// Expansion scenarios: each builds on the MVP plus post-MVP must-haves. `adds` uses item numbers.
 const SCENARIOS = [
-  {
-    key: "responses", tab: "More responses", title: "More responses per project",
-    hyp: "If the agent keeps adding pros and reaches pros outside RAQ, then more projects will reach a set of quotes worth comparing, because fewer projects stall on one or two RAQ replies.",
-    adds: ["6c", "6d", 8],
-    needs: "Phone and web outreach path for pros not on RAQ. An agent email address for forwarded quotes.",
-  },
-  {
-    key: "hire", tab: "Close the hire", title: "Carry the project through the hire",
-    hyp: "If the agent confirms the appointment over RAQ messaging and checks in after the job, then we can measure and grow confirmed hires, because the booking and completion happen inside the agent instead of off-platform.",
-    adds: [10, "10b", 11, 12, "12b"],
-    needs: "Calendar connection for booking. Day-of coordination is stronger once a home profile exists.",
-  },
   {
     key: "intake", tab: "Smarter intake", title: "Know the home and set expectations up front",
     hyp: "If the agent knows the home and shows a price range before matching, then pro reply quality will improve, because pros get complete requests and consumers arrive with realistic budgets.",
@@ -183,16 +179,23 @@ const SCENARIOS = [
     needs: "Property data source and privacy review. Pricing data by category, with lower confidence where pros rarely quote.",
   },
   {
-    key: "repeat", tab: "Repeat use", title: "Bring the consumer back for the next project",
-    hyp: "If the agent remembers the home and the pros and suggests what to do next, then repeat projects per consumer will rise, because the consumer has a reason to return after the hire.",
-    adds: ["7b", 13, 14, 3],
-    needs: "Agent memory and a pro knowledge base. Home profile import.",
+    key: "responses", tab: "More responses", title: "Reach pros beyond RAQ",
+    hyp: "If the agent reaches pros outside RAQ and pulls in quotes the consumer got elsewhere, then more projects will reach a set of quotes worth comparing, because the agent is no longer limited to RAQ-enabled pros.",
+    adds: ["6d", 8],
+    needs: "Phone and web outreach path for pros not on RAQ. An agent email address for forwarded quotes.",
+  },
+  {
+    key: "hire", tab: "Close the hire", title: "Carry the project through the job",
+    hyp: "If the agent books the appointment on the consumer's calendar, coordinates the day of, and checks in after the job, then we can measure confirmed completed jobs, because those steps happen inside the agent instead of off-platform.",
+    adds: ["10b", 11, 12, "12b"],
+    needs: "Calendar connection for booking. Day-of coordination is stronger once a home profile exists.",
   },
 ];
 
 const BASE_VIEWS = {
   vision: { tab: "Target vision", note: "Full target state: 14 components from the doc, placed by journey stage. Top row runs on RAQ. Bottom row needs deeper functionality or new channels." },
   mvp: { tab: "MVP", note: "MVP: project intake, RAQ outreach, agent follow-up with pros until responses are usable, a push notification to bring the consumer back, and pro comparison." },
+  must: { tab: "Post-MVP must-haves", note: "Post-MVP must-haves: the agent adds more pros when responses fall short (6c), and confirms an appointment time over RAQ messaging (10). Both run on RAQ, no new channels." },
 };
 
 const grid = document.getElementById("grid");
@@ -241,15 +244,20 @@ const panel = document.getElementById("panel");
 function show(view) {
   const scen = SCENARIOS.find(s => s.key === view);
   const adds = new Set(scen ? scen.adds.map(String) : []);
+  const showMust = view === "must" || !!scen;
   ITEMS.forEach(it => {
     const el = cards[String(it.n)];
     const inMvp = !!it.mvp && view !== "vision";
+    const inMust = !!it.must && showMust;
     const inScen = adds.has(String(it.n));
+    el.classList.toggle("ongoing", !!it.ongoing);
     el.classList.toggle("mvp-on", inMvp);
+    el.classList.toggle("must-on", inMust);
     el.classList.toggle("scen-on", inScen);
-    el.classList.toggle("dim", view !== "vision" && !inMvp && !inScen);
+    el.classList.toggle("dim", view !== "vision" && !inMvp && !inMust && !inScen);
   });
-  document.body.className = "view-" + view + (scen ? " is-scen" : "");
+  document.body.className = "view-" + view + (view !== "vision" ? " has-mvp" : "") +
+    (showMust ? " has-must" : "") + (scen ? " is-scen" : "");
   panel.innerHTML = scen
     ? `<h2>${scen.title}</h2><p>${scen.hyp}</p>` +
       `<p><span class="k">Adds:</span> ${scen.adds.map(n => `${n} ${titleOf(n)}`).join(", ")}</p>` +
