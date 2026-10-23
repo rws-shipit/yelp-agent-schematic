@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yelp Agent: Hiring Journey Schematic</title>
+<style>
+  :root {
+    --red: #d32323;
+    --red-soft: #fbe9e9;
+    --blue: #1d6fd8;
+    --blue-soft: #e8f1fd;
+    --ink: #1f2328;
+    --muted: #6b7280;
+    --line: #d9dce1;
+    --bg: #f7f7f8;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 40px 48px;
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); background: var(--bg);
+  }
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0; }
+  .nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .nav .grp-lbl { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-left: 8px; }
+  .toggle { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); }
+  .toggle button {
+    border: 0; background: none; padding: 8px 14px; font: inherit; cursor: pointer; color: var(--muted);
+    border-right: 1px solid var(--line); white-space: nowrap;
+  }
+  .toggle button:last-child { border-right: 0; }
+  .toggle button.on { background: var(--ink); color: #fff; }
+  .toggle.scen button.on { background: var(--blue); }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px;
+    margin: 0 0 16px 170px; min-height: 64px; font-size: 13px;
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 4px; }
+  .panel p { margin: 2px 0; }
+  .panel .k { color: var(--muted); font-weight: 600; }
+
+  .rowlbl { display: flex; align-items: center; justify-content: flex-end; text-align: right; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 0 2px 0 40px; }
+  .grid { display: grid; grid-template-columns: 160px repeat(6, 1fr); grid-template-rows: 44px auto auto; gap: 10px; }
+  .stage {
+    background: var(--ink); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px; position: relative;
+  }
+  .stage::after {
+    content: ""; position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    border: 8px solid transparent; border-left-color: var(--ink); z-index: 1;
+  }
+  .stage:last-child::after { display: none; }
+  .cell { display: flex; flex-direction: column; gap: 8px; min-height: 120px; padding: 8px; border-radius: 10px; background: #eef0f2; }
+  .cell.newrow { background: #f1eef8; }
+
+  .card {
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px;
+    transition: opacity .2s, background .2s, border-color .2s;
+  }
+  .card .t { font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: baseline; }
+  .card .n { color: var(--muted); font-size: 11px; font-weight: 500; }
+  .card .d { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .card.dim { opacity: .28; border-style: dashed; }
+  .card.mvp-on { border-color: var(--red); background: var(--red-soft); }
+  .card.scen-on { border-color: var(--blue); background: var(--blue-soft); }
+
+  .foundation { margin-top: 14px; display: grid; grid-template-columns: 160px 1fr; gap: 10px; }
+  .foundation .lbl { display: flex; align-items: center; justify-content: flex-end; padding: 0 2px 0 40px; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; text-align: right; }
+  .bars { display: grid; gap: 8px; }
+  .bar .card { display: flex; align-items: center; gap: 12px; }
+  .bar .card .d { margin: 0; }
+
+  .arrow-h {
+    margin: 18px 0 0 170px; height: 34px; width: calc(100% - 170px);
+    background: linear-gradient(90deg, var(--red) 0%, #f5c2c2 100%);
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%);
+    color: #fff; font-weight: 700; display: flex; align-items: center; padding-left: 14px; font-size: 13px;
+  }
+  .arrows-v { grid-column: 1; grid-row: 2 / 4; width: 30px; position: relative; }
+  .arrow-v {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, var(--red) 0%, #f5c2c2 100%);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), 50% 100%, 0 calc(100% - 18px));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .arrow-v span { writing-mode: vertical-rl; white-space: nowrap; font-weight: 700; color: #fff; font-size: 12px; }
+
+  .legend { display: flex; gap: 18px; margin: 18px 0 0 170px; color: var(--muted); font-size: 12px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1.5px solid; }
+  .legend .l-mvp i { border-color: var(--red); background: var(--red-soft); }
+  .legend .l-scen i { border-color: var(--blue); background: var(--blue-soft); }
+  .legend .l-scen { display: none; }
+  body.is-scen .legend .l-scen { display: inline; }
+  body.view-vision .legend { visibility: hidden; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Yelp Agent: hiring a home services pro, end to end</h1>
+    <p class="sub">Target-state components from the vision walkthrough, mapped by journey stage and capability depth</p>
+  </div>
+  <div class="nav">
+    <div class="toggle" id="base-tabs"></div>
+    <span class="grp-lbl">Expansion scenarios</span>
+    <div class="toggle scen" id="scen-tabs"></div>
+  </div>
+</header>
+
+<div class="panel" id="panel"></div>
+
+<div class="grid" id="grid"></div>
+<div class="foundation">
+  <div class="lbl">Runs across the journey</div>
+  <div class="bars" id="bars"></div>
+</div>
+<div class="arrow-h">Further down the hiring journey</div>
+
+<div class="legend">
+  <span class="l-mvp"><i></i>MVP scope</span>
+  <span class="l-scen"><i></i>Added in this scenario</span>
+</div>
+
+<script>
+// Edit here. mvp: true/false
+// row: "base" (core RAQ-based) | "new" (deeper functionality / new channels) | "x" (cross-journey bar)
+const STAGES = ["Scope the project", "Plan", "Find & reach pros", "Compare & decide", "Book & coordinate", "Complete & next"];
+
+const ITEMS = [
+  // Scope the project
+  { n: 1,  stage: 0, row: "base", title: "Project intake", desc: "Yelp Assistant collects project details", mvp: true },
+  { n: 2,  stage: 0, row: "base", title: "Address intake", desc: "Ask for the home address up front" },
+  { n: 3,  stage: 0, row: "new",  title: "Home profile import", desc: "Property data enrichment, saved profile, privacy review" },
+  { n: 4,  stage: 0, row: "new",  title: "Price estimate", desc: "Trusted price range before matching, by category" },
+  // Plan
+  { n: 5,  stage: 1, row: "new",  title: "Agent plan", desc: "Generated plan with checklist UI. No editing yet" },
+  // Find & reach pros
+  { n: "6a", stage: 2, row: "base", title: "RAQ outreach", desc: "Submit the project to matched pros", mvp: true },
+  { n: "6b", stage: 2, row: "base", title: "Pro follow-up", desc: "Pushes for price and availability when a pro says \"call me.\" Answers pro questions the consumer already covered", mvp: true },
+  { n: "6c", stage: 2, row: "base", title: "Continuous outreach", desc: "Add more pros until enough quotes come back" },
+  { n: "6d", stage: 2, row: "new",  title: "Non-RAQ channels", desc: "Phone and web outreach to pros off RAQ" },
+  // Compare & decide
+  { n: "7a", stage: 3, row: "base", title: "Responses-ready push", desc: "Push notification brings the consumer back to review responses", mvp: true },
+  { n: 9,  stage: 3, row: "base", title: "Pro comparison", desc: "Structured quote records, availability summary", mvp: true },
+  { n: 8,  stage: 3, row: "new",  title: "Outside quotes", desc: "User forwards quotes to an agent email address" },
+  // Book & coordinate
+  { n: 10, stage: 4, row: "base", title: "Appointment confirmation", desc: "Agent uses RAQ messaging to agree on a time with the pro and confirms it with the consumer" },
+  { n: "10b", stage: 4, row: "base", title: "Day-of coordination", desc: "Running late, gate code. Saved to home profile" },
+  { n: 11, stage: 4, row: "new",  title: "Calendar connection", desc: "Book and add the appointment to the calendar" },
+  // Complete & next
+  { n: 12, stage: 5, row: "base", title: "Appointment & job check-in", desc: "Asks the consumer how the appointment went, then whether the job was completed right" },
+  { n: "12b", stage: 5, row: "base", title: "Close the loop", desc: "Tell pros who were not hired" },
+  { n: 13, stage: 5, row: "new",  title: "To-do list", desc: "Next and recurring projects" },
+  // Cross-journey
+  { n: "7b", row: "x", title: "Progress updates", desc: "Push or SMS at every stage when there is news, prompts follow-ups" },
+  { n: 14, row: "x", title: "Agent learning", desc: "Updates user memory and a knowledge base about pros" },
+];
+
+// Expansion scenarios: each adds components on top of the MVP. `adds` uses item numbers.
+const SCENARIOS = [
+  {
+    key: "responses", tab: "More responses", title: "More responses per project",
+    hyp: "If the agent keeps adding pros and reaches pros outside RAQ, then more projects will reach a set of quotes worth comparing, because fewer projects stall on one or two RAQ replies.",
+    adds: ["6c", "6d", 8],
+    needs: "Phone and web outreach path for pros not on RAQ. An agent email address for forwarded quotes.",
+  },
+  {
+    key: "hire", tab: "Close the hire", title: "Carry the project through the hire",
+    hyp: "If the agent confirms the appointment over RAQ messaging and checks in after the job, then we can measure and grow confirmed hires, because the booking and completion happen inside the agent instead of off-platform.",
+    adds: [10, "10b", 11, 12, "12b"],
+    needs: "Calendar connection for booking. Day-of coordination is stronger once a home profile exists.",
+  },
+  {
+    key: "intake", tab: "Smarter intake", title: "Know the home and set expectations up front",
+    hyp: "If the agent knows the home and shows a price range before matching, then pro reply quality will improve, because pros get complete requests and consumers arrive with realistic budgets.",
+    adds: [2, 3, 4, 5],
+    needs: "Property data source and privacy review. Pricing data by category, with lower confidence where pros rarely quote.",
+  },
+  {
+    key: "repeat", tab: "Repeat use", title: "Bring the consumer back for the next project",
+    hyp: "If the agent remembers the home and the pros and suggests what to do next, then repeat projects per consumer will rise, because the consumer has a reason to return after the hire.",
+    adds: ["7b", 13, 14, 3],
+    needs: "Agent memory and a pro knowledge base. Home profile import.",
+  },
+];
+
+const BASE_VIEWS = {
+  vision: { tab: "Target vision", note: "Full target state: 14 components from the doc, placed by journey stage. Top row runs on RAQ. Bottom row needs deeper functionality or new channels." },
+  mvp: { tab: "MVP", note: "MVP: project intake, RAQ outreach, agent follow-up with pros until responses are usable, a push notification to bring the consumer back, and pro comparison." },
+};
+
+const grid = document.getElementById("grid");
+const bars = document.getElementById("bars");
+const cards = {};
+
+function card(it) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.innerHTML =
+    `<div><div class="t"><span class="n">${it.n}</span>${it.title}</div>` +
+    `<div class="d">${it.desc}</div></div>`;
+  cards[String(it.n)] = el;
+  return el;
+}
+
+grid.appendChild(document.createElement("div"));
+STAGES.forEach(s => {
+  const h = document.createElement("div");
+  h.className = "stage"; h.textContent = s; grid.appendChild(h);
+});
+const arrowV = document.createElement("div");
+arrowV.className = "arrows-v";
+arrowV.innerHTML = `<div class="arrow-v"><span>Deeper functionality / new channels</span></div>`;
+grid.appendChild(arrowV);
+const ROW_LABELS = { base: "Core RAQ-based functionality", new: "Deeper functionality / new channels" };
+["base", "new"].forEach((row, r) => {
+  const lbl = document.createElement("div");
+  lbl.className = "rowlbl"; lbl.textContent = ROW_LABELS[row];
+  lbl.style.gridColumn = "1"; lbl.style.gridRow = String(r + 2);
+  grid.appendChild(lbl);
+  STAGES.forEach((_, i) => {
+    const c = document.createElement("div");
+    c.className = "cell" + (row === "new" ? " newrow" : "");
+    ITEMS.filter(it => it.row === row && it.stage === i).forEach(it => c.appendChild(card(it)));
+    grid.appendChild(c);
+  });
+});
+ITEMS.filter(it => it.row === "x").forEach(it => {
+  const b = document.createElement("div"); b.className = "bar"; b.appendChild(card(it)); bars.appendChild(b);
+});
+
+const titleOf = n => ITEMS.find(it => String(it.n) === String(n)).title;
+const panel = document.getElementById("panel");
+
+function show(view) {
+  const scen = SCENARIOS.find(s => s.key === view);
+  const adds = new Set(scen ? scen.adds.map(String) : []);
+  ITEMS.forEach(it => {
+    const el = cards[String(it.n)];
+    const inMvp = !!it.mvp && view !== "vision";
+    const inScen = adds.has(String(it.n));
+    el.classList.toggle("mvp-on", inMvp);
+    el.classList.toggle("scen-on", inScen);
+    el.classList.toggle("dim", view !== "vision" && !inMvp && !inScen);
+  });
+  document.body.className = "view-" + view + (scen ? " is-scen" : "");
+  panel.innerHTML = scen
+    ? `<h2>${scen.title}</h2><p>${scen.hyp}</p>` +
+      `<p><span class="k">Adds:</span> ${scen.adds.map(n => `${n} ${titleOf(n)}`).join(", ")}</p>` +
+      `<p><span class="k">Needs:</span> ${scen.needs}</p>`
+    : `<p>${BASE_VIEWS[view].note}</p>`;
+  document.querySelectorAll(".toggle button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+}
+
+function addTab(container, key, label) {
+  const b = document.createElement("button");
+  b.dataset.view = key; b.textContent = label; b.onclick = () => show(key);
+  document.getElementById(container).appendChild(b);
+}
+Object.entries(BASE_VIEWS).forEach(([k, v]) => addTab("base-tabs", k, v.tab));
+SCENARIOS.forEach(s => addTab("scen-tabs", s.key, s.tab));
+
+const start = location.hash.slice(1);
+show(BASE_VIEWS[start] || SCENARIOS.some(s => s.key === start) ? start : "vision");
+</script>
+</body>
+</html>
