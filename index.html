@@ -43,6 +43,22 @@
   .panel h2 { font-size: 15px; margin: 0 0 4px; }
   .panel p { margin: 2px 0; }
   .panel .k { color: var(--muted); font-weight: 600; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .panel-head .tools { display: flex; gap: 14px; align-items: baseline; white-space: nowrap; font-size: 12px; color: var(--muted); }
+  .panel-head button { border: 0; background: none; color: var(--blue); font: inherit; cursor: pointer; padding: 0; }
+  .lane-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 6px 28px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .panel.collapsed .lane-grid { display: none; }
+  .sec h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 4px; }
+  .sec + .sec { margin-top: 12px; }
+  .sec ul { margin: 0; padding-left: 16px; }
+  .sec li { margin: 2px 0; }
+  .sec li.need { list-style: none; margin-left: -16px; display: flex; justify-content: space-between; gap: 8px; }
+  .st { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 1px 6px; border-radius: 99px; white-space: nowrap; align-self: flex-start; }
+  .st.exists { background: #e6f4ea; color: #1e7b34; }
+  .st.changes { background: #fdf1d8; color: #9a6400; }
+  .st.new { background: #f3edff; color: #6d28d9; }
+  .q { background: #fff4c2; border-bottom: 1px dashed #d4a000; padding: 0 2px; border-radius: 2px; }
+  .q::before { content: "\26A0 "; font-size: 11px; }
 
   .rowlbl { display: flex; align-items: center; justify-content: flex-end; text-align: right; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 0 2px 0 40px; }
   .grid { display: grid; grid-template-columns: 160px repeat(6, 1fr); grid-template-rows: 44px auto auto; gap: 10px; }
@@ -170,32 +186,118 @@ const ITEMS = [
   { n: 14, row: "x", title: "Agent learning", desc: "Updates user memory and a knowledge base about pros", ongoing: true },
 ];
 
+// Lane definitions shown in the panel under each tab.
+// Wrap anything that needs a decision or data in [[double brackets]] to highlight it.
+// needs: [tool, "exists" | "changes" | "new"]
+const LANES = {
+  mvp: {
+    title: "MVP: get every RAQ reply to a usable quote",
+    goes: "RAQ replies often can't be compared as sent. Pros say \"call me,\" ask questions the consumer already answered, or reply without a price or availability, so the consumer has to chase each pro. [[Data point: share of RAQ replies with no price or availability]]",
+    hyp: "If the agent follows up with pros until each reply has a price and availability, then the share of RAQ projects with 2+ comparable quotes will rise, because consumers no longer chase pros themselves.",
+    metric: "% of agent projects with 2+ replies that include price and availability within [[24 hours]]",
+    guard: "Pro reply rate vs. non-agent RAQ. Pro complaints or blocks on agent messages.",
+    reqs: [
+      "Consumer opts in after RAQ submit. Agent says it will message pros and check in before booking or sharing contact info. Push permission is requested here.",
+      "Pro says \"call me\" → agent asks for a price range and 2-3 times by message. Consumer's phone number is not shared without approval.",
+      "Pro asks something already in the project details → agent answers. Address is held back until booking.",
+      "Pro asks something new → agent asks the consumer, does not guess, and relays the answer.",
+      "Agent stops following up after [[2 nudges]] per pro.",
+      "Push fires when [[2 usable replies arrive, or 4 hours after submit, whichever comes first]].",
+      "Comparison shows price, availability, scope and conditions per pro. Missing fields show as missing, not inferred.",
+    ],
+    out: ["Adding more pros when replies fall short (post-MVP)", "Confirming an appointment time", "Phone, web or email outreach", "Categories beyond [[launch categories]]"],
+    needs: [["Yelp messaging read/send as agent", "changes"], ["Project details from RAQ", "exists"], ["Category playbooks", "new"], ["Proposal parsing and normalization", "new"], ["Comparison view", "new"], ["Consent record", "new"], ["Push", "exists"]],
+    qs: ["What counts as a usable reply: price only, or price and availability?", "Does the agent tell pros it's an agent, or write as the consumer?", "Should the comparison lead with a recommendation?"],
+    ex: ["Services #1 Home cleaning (pro asks for the address)", "Services #4 Handyman and #5 Electrician (mix of quotes and availability-only replies)"],
+  },
+  must: {
+    title: "Post-MVP must-haves: fewer stalled projects",
+    goes: "Two gaps the MVP leaves open. Some projects get too few replies to compare, and once the consumer picks a pro, the time still gets worked out off-platform.",
+    hyp: "If the agent adds pros when replies fall short and confirms the appointment time over RAQ messaging, then more agent projects will end in a confirmed appointment, because fewer projects stall on too few quotes or on scheduling.",
+    metric: "% of agent projects that reach a confirmed appointment time",
+    guard: "Reply rate from agent-added pros. Consumer cancel or reschedule rate.",
+    reqs: [
+      "Fewer than [[2 usable replies]] after [[2 hours]] → agent sends the request to up to [[3 more]] RAQ pros, and repeats once.",
+      "Added pros match the original request: category, location, timing.",
+      "Agent tells the consumer when it adds pros and why.",
+      "Consumer picks a pro → agent asks the consumer for 2-3 windows, sends them to the pro over RAQ messaging, and confirms one time back to both.",
+      "Pro proposes a different time → agent checks with the consumer before accepting.",
+      "Confirmed time shows in the project and goes to the consumer as a push.",
+    ],
+    out: ["Writing to the consumer's calendar (Close the hire)", "Phone or web outreach to non-RAQ pros (More responses)", "Reschedule and cancel flows [[confirm]]"],
+    needs: [["Pro matching for added pros", "exists"], ["Agent-initiated RAQ to added pros", "changes"], ["Yelp messaging read/send as agent", "changes"], ["Consumer availability capture", "new"], ["Appointment record", "new"], ["Push", "exists"]],
+    qs: ["Does the consumer approve each added pro, or set a rule once?", "Cap on total pros contacted per project?", "Does a confirmed time count as a booking in Yelp metrics, or does the pro need to confirm?"],
+    ex: ["Services #2 Roof leak (no replies after 1 hour, add more pros), RAQ part only", "[[New script needed: appointment confirmation over RAQ messaging]]"],
+  },
+  intake: {
+    title: "Smarter intake: know the home, set expectations up front",
+    goes: "Pros reply with questions about the home instead of quotes, and consumers have no idea of cost before matching. Both slow the project down and lower quote quality.",
+    hyp: "If the agent knows the home and shows a price range before matching, then more first replies will include a price, because pros get complete requests and consumers arrive with realistic budgets.",
+    metric: "% of pro first replies that include a price, not a question",
+    guard: "Intake completion rate. More questions up front can cause drop-off.",
+    reqs: [
+      "Agent asks for the home address during intake and says why: better matches and more accurate quotes.",
+      "Agent pulls property details (square footage, beds and baths, stories, year built) from [[property data source]] and asks the consumer to confirm, not re-enter.",
+      "Home profile is saved and reused on the next project. Consumer can view and delete it.",
+      "Price range shows before matching only when confidence is [[above a threshold]]. Otherwise the agent says it will get quotes.",
+      "Agent shows its plan as a checklist before outreach, and checks steps off as they complete.",
+      "Address is never sent to pros before booking (same rule as MVP).",
+    ],
+    out: ["Editing the plan", "Property data beyond [[home basics]]", "Price ranges for categories where pros rarely quote upfront [[confirm list]]"],
+    needs: [["Address capture in Yelp Assistant", "changes"], ["Property data source", "new"], ["Home profile storage", "new"], ["Privacy and legal review", "new"], ["Price model by category [[Cost Guides as a start?]]", "new"], ["Plan and checklist UI", "new"]],
+    qs: ["Which property data vendor, and what can we store under privacy rules?", "Show the price range before or after the consumer confirms scope?", "Does the plan add friction for simple jobs?"],
+    ex: ["[[None yet. New script needed]]"],
+  },
+  responses: {
+    title: "More responses: reach pros beyond RAQ",
+    goes: "Many good pros in a market aren't on RAQ or don't reply there, and consumers often have quotes from outside Yelp. The agent can only compare RAQ replies.",
+    hyp: "If the agent reaches pros outside RAQ and pulls in quotes the consumer got elsewhere, then more projects will reach a set of quotes worth comparing, because the agent is no longer limited to RAQ-enabled pros.",
+    metric: "% of agent projects with 3+ comparable quotes",
+    guard: "Pro complaints about calls. Consumer opt-outs from phone outreach.",
+    reqs: [
+      "RAQ outreach exhausted and replies still short → agent calls up to [[2]] non-RAQ pros.",
+      "Phone agent says it's calling for a Yelp user [[legal review]], asks for a price range and availability, and does not share consumer contact info.",
+      "Call outcome and a short summary show in the project. Full transcript is saved.",
+      "Consumer can forward a quote to an agent email address. Agent puts it in the same comparison format.",
+      "Outside quotes are labeled with their source in the comparison.",
+    ],
+    out: ["Submitting web forms on pro websites [[confirm]]", "Reading the consumer's inbox directly (forwarding only)"],
+    needs: [["Phone agent [[reuse from RFN?]]", "new"], ["Pro phone numbers from business data", "exists"], ["Call disclosure and recording compliance", "new"], ["Agent email inbox", "new"], ["Proposal parsing for email and call notes", "changes"]],
+    qs: ["Does the consumer approve phone outreach per project, or once?", "Disclosure and recording consent rules by state", "Forwarding to an agent email, or Gmail read access? Services #8 assumes Gmail."],
+    ex: ["Services #2 Roof leak (phone calls)", "Services #8 Gmail quote"],
+  },
+  hire: {
+    title: "Close the hire: carry the project through the job",
+    goes: "After a time is confirmed, the rest of the job (calendar, day-of logistics, whether the work got done) happens off Yelp. We can't see completed jobs or help when something goes wrong.",
+    hyp: "If the agent books the appointment on the consumer's calendar, coordinates the day of, and checks in after the job, then we can measure confirmed completed jobs, because those steps happen inside the agent instead of off-platform.",
+    metric: "% of confirmed appointments with a completed-job confirmation",
+    guard: "Pro opt-outs from agent check-ins.",
+    reqs: [
+      "Consumer can connect Google Calendar. Agent adds the confirmed appointment and can invite a partner.",
+      "Day of the appointment: agent relays messages between consumer and pro (running late, gate code). Access details are saved to the home profile with consent.",
+      "After the appointment, agent asks the consumer how it went. If the pro quoted follow-up work, agent tracks it.",
+      "After the job, agent asks whether it was completed right. Pro can share photos or an invoice.",
+      "Agent sends a short close-out to pros who weren't hired.",
+      "Agent prompts the consumer to review the pro [[timing]].",
+    ],
+    out: ["Payments and invoicing", "Reading the calendar for personalization [[confirm]]", "Rescheduling through the calendar"],
+    needs: [["Google Calendar write access", "new"], ["Yelp messaging read/send as agent", "changes"], ["Home profile (from Smarter intake)", "new"], ["Job completion record", "new"], ["Review prompt", "exists"]],
+    qs: ["Who confirms completion: consumer, pro, or both?", "Is the close-out to non-hired pros automatic, or does the consumer approve it?", "Does job completion feed pro ranking or ads attribution?"],
+    ex: ["Services #6 Calendar: add events", "Services #7 Calendar: use context"],
+  },
+};
+
 // Expansion scenarios: each builds on the MVP plus post-MVP must-haves. `adds` uses item numbers.
 const SCENARIOS = [
-  {
-    key: "intake", tab: "Smarter intake", title: "Know the home and set expectations up front",
-    hyp: "If the agent knows the home and shows a price range before matching, then pro reply quality will improve, because pros get complete requests and consumers arrive with realistic budgets.",
-    adds: [2, 3, 4, 5],
-    needs: "Property data source and privacy review. Pricing data by category, with lower confidence where pros rarely quote.",
-  },
-  {
-    key: "responses", tab: "More responses", title: "Reach pros beyond RAQ",
-    hyp: "If the agent reaches pros outside RAQ and pulls in quotes the consumer got elsewhere, then more projects will reach a set of quotes worth comparing, because the agent is no longer limited to RAQ-enabled pros.",
-    adds: ["6d", 8],
-    needs: "Phone and web outreach path for pros not on RAQ. An agent email address for forwarded quotes.",
-  },
-  {
-    key: "hire", tab: "Close the hire", title: "Carry the project through the job",
-    hyp: "If the agent books the appointment on the consumer's calendar, coordinates the day of, and checks in after the job, then we can measure confirmed completed jobs, because those steps happen inside the agent instead of off-platform.",
-    adds: ["10b", 11, 12, "12b"],
-    needs: "Calendar connection for booking. Day-of coordination is stronger once a home profile exists.",
-  },
+  { key: "intake", tab: "Smarter intake", adds: [2, 3, 4, 5] },
+  { key: "responses", tab: "More responses", adds: ["6d", 8] },
+  { key: "hire", tab: "Close the hire", adds: ["10b", 11, 12, "12b"] },
 ];
 
 const BASE_VIEWS = {
   vision: { tab: "Target vision", note: "Full target state: 14 components from the doc, placed by journey stage. Top row runs on RAQ. Bottom row needs deeper functionality or new channels." },
-  mvp: { tab: "MVP", note: "MVP: project intake, RAQ outreach, agent follow-up with pros until responses are usable, a push notification to bring the consumer back, and pro comparison." },
-  must: { tab: "Post-MVP must-haves", note: "Post-MVP must-haves: the agent adds more pros when responses fall short (6c), and confirms an appointment time over RAQ messaging (10). Both run on RAQ, no new channels." },
+  mvp: { tab: "MVP" },
+  must: { tab: "Post-MVP must-haves" },
 };
 
 const grid = document.getElementById("grid");
@@ -240,6 +342,37 @@ ITEMS.filter(it => it.row === "x").forEach(it => {
 
 const titleOf = n => ITEMS.find(it => String(it.n) === String(n)).title;
 const panel = document.getElementById("panel");
+let collapsed = false;
+
+const fmt = s => s.replace(/\[\[(.+?)\]\]/g, '<span class="q">$1</span>');
+const ul = xs => `<ul>${xs.map(x => `<li>${fmt(x)}</li>`).join("")}</ul>`;
+const ST = { exists: "Exists", changes: "Needs changes", new: "New" };
+
+function lanePanel(view, L) {
+  const scen = SCENARIOS.find(s => s.key === view);
+  const scope = view === "mvp" ? ITEMS.filter(it => it.mvp).map(it => it.n)
+    : view === "must" ? ITEMS.filter(it => it.must).map(it => it.n)
+    : scen.adds;
+  const flags = (JSON.stringify(L).match(/\[\[/g) || []).length;
+  return `<div class="panel-head"><h2>${L.title}</h2><div class="tools">` +
+      `<span>${flags} items need input</span>` +
+      `<button id="collapse">${collapsed ? "Show details" : "Hide details"}</button></div></div>` +
+    `<p><span class="k">Goes after:</span> ${fmt(L.goes)}</p>` +
+    `<p><span class="k">Hypothesis:</span> ${fmt(L.hyp)}</p>` +
+    `<div class="lane-grid">` +
+      `<div><div class="sec"><h3>Key requirements</h3>${ul(L.reqs)}</div></div>` +
+      `<div>` +
+        `<div class="sec"><h3>Components</h3>${ul(scope.map(n => `${n} ${titleOf(n)}`))}</div>` +
+        `<div class="sec"><h3>Success metric</h3><p>${fmt(L.metric)}</p><p><span class="k">Guardrail:</span> ${fmt(L.guard)}</p></div>` +
+        `<div class="sec"><h3>Out of scope</h3>${ul(L.out)}</div>` +
+      `</div>` +
+      `<div>` +
+        `<div class="sec"><h3>Needs</h3><ul>${L.needs.map(([t, s]) => `<li class="need"><span>${fmt(t)}</span><span class="st ${s}">${ST[s]}</span></li>`).join("")}</ul></div>` +
+        `<div class="sec"><h3>Open questions</h3>${ul(L.qs)}</div>` +
+        `<div class="sec"><h3>Golden examples</h3>${ul(L.ex)}</div>` +
+      `</div>` +
+    `</div>`;
+}
 
 function show(view) {
   const scen = SCENARIOS.find(s => s.key === view);
@@ -258,11 +391,11 @@ function show(view) {
   });
   document.body.className = "view-" + view + (view !== "vision" ? " has-mvp" : "") +
     (showMust ? " has-must" : "") + (scen ? " is-scen" : "");
-  panel.innerHTML = scen
-    ? `<h2>${scen.title}</h2><p>${scen.hyp}</p>` +
-      `<p><span class="k">Adds:</span> ${scen.adds.map(n => `${n} ${titleOf(n)}`).join(", ")}</p>` +
-      `<p><span class="k">Needs:</span> ${scen.needs}</p>`
-    : `<p>${BASE_VIEWS[view].note}</p>`;
+  const L = LANES[view];
+  panel.classList.toggle("collapsed", !!L && collapsed);
+  panel.innerHTML = L ? lanePanel(view, L) : `<p>${BASE_VIEWS[view].note}</p>`;
+  const btn = document.getElementById("collapse");
+  if (btn) btn.onclick = () => { collapsed = !collapsed; show(view); };
   document.querySelectorAll(".toggle button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
 }
 
