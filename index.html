@@ -86,6 +86,8 @@
   .card.ongoing, .card.ongoing.dim { opacity: 1; border: 1.5px dotted #b8bcc4; background: #f4f5f6; }
   .card.ongoing .t { color: var(--muted); }
   .bar .card > div { flex: 1; }
+  .cell .card.ongoing .t { flex-wrap: wrap; }
+  .cell .card.ongoing .t::after { order: -1; flex-basis: 100%; margin: 0 0 2px; }
   .card.ongoing .t::after { content: "Always relevant"; margin-left: auto; white-space: nowrap; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #9aa0a8; }
 
   .foundation { margin-top: 14px; display: grid; grid-template-columns: 160px 1fr; gap: 10px; }
@@ -108,6 +110,40 @@
     display: flex; align-items: center; justify-content: center;
   }
   .arrow-v span { writing-mode: vertical-rl; white-space: nowrap; font-weight: 700; color: #fff; font-size: 12px; }
+
+  .layout { display: flex; gap: 24px; align-items: flex-start; }
+  .main { flex: 1; min-width: 0; }
+  .mock-col { width: 310px; flex: none; position: sticky; top: 16px; }
+  body.view-vision .mock-col { display: none; }
+  .mock-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 8px 4px; }
+  .mock-cap { font-size: 11px; color: #9aa0a8; margin: 8px 4px 0; }
+  .phone { border: 8px solid #1f2328; border-radius: 34px; background: #fff; overflow: hidden; height: 640px; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .ph-top { display: grid; grid-template-columns: 24px 1fr 24px; align-items: center; padding: 14px 12px 10px; border-bottom: 1px solid #eceef1; }
+  .ph-back { font-size: 22px; color: var(--muted); line-height: 1; }
+  .ph-title { text-align: center; font-weight: 700; font-size: 14px; }
+  .ph-sub { grid-column: 1 / -1; text-align: center; font-size: 11px; color: var(--muted); }
+  .ph-body { flex: 1; overflow: hidden; padding: 12px 10px; display: flex; flex-direction: column; gap: 8px; background: #fafafb; font-size: 12.5px; line-height: 1.35; }
+  .ph-input { margin: 8px 10px 12px; border: 1px solid var(--line); border-radius: 18px; padding: 8px 12px; color: #9aa0a8; font-size: 12px; }
+  .msg { max-width: 86%; padding: 8px 10px; border-radius: 14px; }
+  .msg.a { background: #fff; border: 1px solid #eceef1; border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg.u { background: var(--red); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+  .status { align-self: center; font-size: 11px; color: var(--muted); background: #f0f1f3; border-radius: 99px; padding: 3px 10px; text-align: center; }
+  .ui { background: #fff; border: 1px solid #e3e5e9; border-radius: 12px; padding: 10px; align-self: stretch; }
+  .ui h4 { margin: 0 0 6px; font-size: 12px; }
+  .ui .row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-top: 1px solid #f0f1f3; }
+  .ui .row:first-of-type { border-top: 0; }
+  .ui .nm { font-weight: 600; }
+  .ui .pr { font-weight: 700; text-align: right; }
+  .ui .mt { color: var(--muted); font-size: 11px; }
+  .ui .rec { font-size: 10px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: .03em; }
+  .ui .src { font-size: 10px; font-weight: 700; color: var(--muted); background: #f0f1f3; border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+  .ui .miss { color: #b0b4ba; font-style: italic; font-weight: 400; }
+  .ui .chk { display: flex; gap: 6px; padding: 3px 0; }
+  .ui .chk b { color: #1e7b34; }
+  .ui .chk.todo { color: var(--muted); }
+  .btns { display: flex; gap: 6px; flex-wrap: wrap; align-self: stretch; }
+  .btn { flex: 1; text-align: center; padding: 7px 8px; border-radius: 8px; font-weight: 600; font-size: 12px; border: 1px solid var(--line); background: #fff; }
+  .btn.p { background: var(--red); border-color: var(--red); color: #fff; }
 
   .legend { display: flex; gap: 18px; margin: 18px 0 0 170px; color: var(--muted); font-size: 12px; }
   .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1.5px solid; }
@@ -133,6 +169,8 @@
   </div>
 </header>
 
+<div class="layout">
+<div class="main">
 <div class="grid" id="grid"></div>
 <div class="foundation">
   <div class="lbl">Runs across the journey</div>
@@ -145,6 +183,17 @@
   <span class="l-must"><i></i>Post-MVP must-have</span>
   <span class="l-scen"><i></i>Added in this scenario</span>
   <span class="l-ongoing"><i></i>Always relevant, builds over time</span>
+</div>
+</div>
+<aside class="mock-col" id="mock-col">
+  <div class="mock-lbl">What the consumer sees</div>
+  <div class="phone">
+    <div class="ph-top"><span class="ph-back">&#8249;</span><span class="ph-title">Yelp Assistant</span><span class="ph-sub" id="mock-sub"></span></div>
+    <div class="ph-body" id="mock"></div>
+    <div class="ph-input">Message Yelp Assistant</div>
+  </div>
+  <div class="mock-cap">Mock for illustration. Pros and prices are made up.</div>
+</aside>
 </div>
 
 <div class="panel" id="panel"></div>
@@ -279,6 +328,74 @@ const LANES = {
   },
 };
 
+// One representative consumer screen per lane (right-hand phone mock).
+const MOCKS = {
+  mvp: { sub: "Move-in clean · 94110", html: `
+    <div class="status">Agent messaged 3 pros · answered 1 pro question for you</div>
+    <div class="msg a">3 pros got back to you. Bay Area Maids asked to call, so I asked them for a price and times by message instead. Your number hasn't been shared.</div>
+    <div class="ui"><h4>Move-in clean · 3 bed / 2 bath</h4>
+      <div class="row"><span class="nm">Sparkle Home Co.</span><span class="pr">$320</span>
+        <span class="mt">★ 4.9 · Thu 10am, Sat 9am</span><span class="rec">Best fit</span></div>
+      <div class="row"><span class="nm">Bay Area Maids</span><span class="pr">$290–360</span>
+        <span class="mt">★ 4.7 · Fri 1pm</span><span></span></div>
+      <div class="row"><span class="nm">Mission Clean Team</span><span class="pr miss">No price yet</span>
+        <span class="mt">★ 4.8 · Sat 11am</span><span></span></div>
+    </div>
+    <div class="msg a">Sparkle Home Co. includes the oven and fridge and has the most reviews for move-in cleans. Want to go with them?</div>
+    <div class="btns"><span class="btn p">Pick Sparkle</span><span class="btn">Compare details</span></div>` },
+  must: { sub: "Move-in clean · 94110", html: `
+    <div class="status">Only 1 usable reply after 2 hours</div>
+    <div class="msg a">Only 1 pro has sent a price so far, so I reached out to 3 more cleaners near you who do move-in cleans. You'll hear from me when they reply.</div>
+    <div class="status">2 more replies came in · 3 quotes to compare</div>
+    <div class="msg u">Let's go with Sparkle Home Co. I'm free Thursday morning or Saturday.</div>
+    <div class="msg a">Sparkle can do Thursday at 10am. They'll need about 3 hours.</div>
+    <div class="ui"><h4>Confirm your appointment</h4>
+      <div class="row"><span class="nm">Sparkle Home Co.</span><span class="pr">$320</span>
+        <span class="mt">Thu, Nov 5 · 10am–1pm</span><span></span></div>
+    </div>
+    <div class="btns"><span class="btn p">Confirm Thu 10am</span><span class="btn">Other times</span></div>` },
+  intake: { sub: "New project", html: `
+    <div class="msg u">I need a move-in clean at 2417 Folsom St</div>
+    <div class="msg a">Got it. I found some details on your home. Does this look right?</div>
+    <div class="ui"><h4>Your home</h4>
+      <div class="mt">2417 Folsom St, San Francisco 94110</div>
+      <div class="row"><span>3 bed · 2 bath · 1,450 sq ft</span><span></span>
+        <span class="mt">2 stories · built 1924</span><span></span></div>
+    </div>
+    <div class="btns"><span class="btn p">Looks right</span><span class="btn">Edit</span></div>
+    <div class="msg a">Move-in cleans for homes like yours usually run <b>$280–$420</b> in your area. Here's my plan:</div>
+    <div class="ui">
+      <div class="chk"><b>✓</b> Confirm your home details</div>
+      <div class="chk todo">○ Message 3 top-rated cleaners</div>
+      <div class="chk todo">○ Get prices and times</div>
+      <div class="chk todo">○ Send you a comparison</div>
+    </div>` },
+  responses: { sub: "Roof leak inspection", html: `
+    <div class="status">RAQ: 1 reply from 5 roofers</div>
+    <div class="msg a">Only 1 roofer replied on Yelp, so I called 2 more who don't take requests here.</div>
+    <div class="ui"><h4>📞 Call with Summit Roofing · 3 min</h4>
+      <div class="mt">Can inspect Thu 9am. $150 inspection fee, credited if you hire them. Asked for photos of the ceiling stain.</div>
+      <div class="mt" style="color:var(--blue);margin-top:4px">View transcript</div>
+    </div>
+    <div class="msg u">I also got a quote by email, forwarded it to you</div>
+    <div class="ui"><h4>4 quotes to compare</h4>
+      <div class="row"><span class="nm">Summit Roofing<span class="src">CALL</span></span><span class="pr">$150</span></div>
+      <div class="row"><span class="nm">Ridgeline Roofing<span class="src">EMAIL</span></span><span class="pr">$175</span></div>
+      <div class="row"><span class="nm">Peak Roof Repair<span class="src">YELP</span></span><span class="pr">$125</span></div>
+      <div class="row"><span class="nm">Golden Gate Roofing<span class="src">CALL</span></span><span class="pr miss">Calls back Fri</span></div>
+    </div>` },
+  hire: { sub: "Move-in clean · Sparkle Home Co.", html: `
+    <div class="ui"><h4>📅 Added to Google Calendar</h4>
+      <div class="mt">Move-in clean · Sparkle Home Co.<br>Thu, Nov 5 · 10am–1pm · Invited Sam</div>
+    </div>
+    <div class="status">Thu, Nov 5 · 9:40am</div>
+    <div class="msg a">Maria from Sparkle is running about 15 minutes late. She asked for the gate code. Okay to share 4471?</div>
+    <div class="btns"><span class="btn p">Share code</span><span class="btn">I'll let her in</span></div>
+    <div class="status">Thu, Nov 5 · 2:15pm</div>
+    <div class="msg a">Sparkle marked the job done and sent 6 photos. Did everything get cleaned the way you wanted, including the oven and fridge?</div>
+    <div class="btns"><span class="btn p">Yes, all done</span><span class="btn">Something's missing</span></div>` },
+};
+
 // Expansion scenarios: each builds on the MVP plus post-MVP must-haves. `adds` uses item numbers.
 const SCENARIOS = [
   { key: "intake", tab: "Smarter intake", adds: [2, 3, 4, 5] },
@@ -380,6 +497,8 @@ function show(view) {
   panel.innerHTML = L ? lanePanel(view, L) : `<p>${BASE_VIEWS[view].note}</p>`;
   const btn = document.getElementById("collapse");
   if (btn) btn.onclick = () => { collapsed = !collapsed; show(view); };
+  const M = MOCKS[view];
+  if (M) { document.getElementById("mock").innerHTML = M.html; document.getElementById("mock-sub").textContent = M.sub; }
   document.querySelectorAll(".toggle button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
 }
 
