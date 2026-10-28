@@ -231,6 +231,7 @@ const ITEMS = [
   { n: 13, stage: 5, row: "new",  title: "To-do list", desc: "Next and recurring projects", ongoing: true },
   // Cross-journey
   { n: "7b", row: "x", title: "Progress updates", desc: "Push or SMS at every stage when there is news, prompts follow-ups", ongoing: true },
+  { n: "7c", row: "x", title: "SMS updates", desc: "Consumer opts in with a phone number. Agent texts project updates with a link back to Yelp Assistant", must: true },
   { n: 14, row: "x", title: "Agent learning", desc: "Updates user memory and a knowledge base about pros", ongoing: true },
 ];
 
@@ -261,7 +262,7 @@ const LANES = {
     goes: "Two gaps the MVP leaves open. Some projects get too few replies to compare, and once the consumer picks a pro, the time still gets worked out off-platform.",
     hyp: "If the agent adds pros when replies fall short and confirms the appointment time over RAQ messaging, then more agent projects will end in a confirmed appointment, because fewer projects stall on too few quotes or on scheduling.",
     metric: "% of agent projects that reach a confirmed appointment time",
-    guard: "Reply rate from agent-added pros. Consumer cancel or reschedule rate.",
+    guard: "Reply rate from agent-added pros. Consumer cancel or reschedule rate. SMS opt-out rate.",
     reqs: [
       "Fewer than 2 usable replies after 2 hours → agent sends the request to 3 more RAQ pros, and repeats once.",
       "Added pros match the original request: category, location, timing.",
@@ -269,10 +270,13 @@ const LANES = {
       "Consumer picks a pro → agent asks the consumer for 2-3 windows, sends them to the pro over RAQ messaging, and confirms one time back to both.",
       "Pro proposes a different time → agent checks with the consumer before accepting.",
       "Confirmed time shows in the project and goes to the consumer as a push.",
+      "Agent offers SMS updates and asks the consumer to confirm a phone number. SMS consent is recorded separately from push.",
+      "SMS goes out at the same moments as push: responses ready, pros added, time confirmed. Each text has a short link and STOP to opt out.",
+      "SMS link opens the Yelp Assistant conversation, or the project page if the app isn't installed.",
     ],
-    out: ["Writing to the consumer's calendar (Close the hire)", "Phone or web outreach to non-RAQ pros (More responses)", "Reschedule and cancel flows. Consumer handles these in messaging."],
-    needs: [["Pro matching for added pros", "exists"], ["Agent-initiated RAQ to added pros", "changes"], ["Yelp messaging read/send as agent", "changes"], ["Consumer availability capture", "new"], ["Appointment record", "new"], ["Push", "exists"]],
-    assume: ["Consumer approves adding pros once at opt-in, not pro by pro.", "Cap of 9 pros contacted per project (3 + 3 + 3).", "A time counts as confirmed once the pro accepts it in messaging."],
+    out: ["Writing to the consumer's calendar (Close the hire)", "Phone or web outreach to non-RAQ pros (More responses)", "Reschedule and cancel flows. Consumer handles these in messaging.", "Consumer replying to the agent by text. SMS is one-way."],
+    needs: [["Pro matching for added pros", "exists"], ["Agent-initiated RAQ to added pros", "changes"], ["Yelp messaging read/send as agent", "changes"], ["Consumer availability capture", "new"], ["Appointment record", "new"], ["Push", "exists"], ["Universal links into Yelp Assistant", "changes"], ["Short links (160-character SMS limit)", "new"], ["SMS consent record and compliance review", "new"]],
+    assume: ["Consumer approves adding pros once at opt-in, not pro by pro.", "Cap of 9 pros contacted per project (3 + 3 + 3).", "A time counts as confirmed once the pro accepts it in messaging.", "Consumers with push on get push only. SMS reaches consumers who have push off or never granted it."],
   },
   intake: {
     title: "Smarter intake: know the home, set expectations up front",
